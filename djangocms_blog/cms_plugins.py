@@ -7,6 +7,7 @@ from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import models
+from django.utils.translation import get_language
 
 from .forms import LatestEntriesForm
 from .models import AuthorEntriesPlugin, BlogCategory, GenericBlogPlugin, LatestPostsPlugin, Post
@@ -43,7 +44,11 @@ class BlogLatestEntriesPlugin(BlogPlugin):
 
     def render(self, context, instance, placeholder):
         context = super(BlogLatestEntriesPlugin, self).render(context, instance, placeholder)
-        context['posts_list'] = instance.get_posts(context['request'], published_only=False)
+        posts = []
+        for post in instance.get_posts(context['request'], published_only=False):
+            if post.has_translation(get_language()):
+                posts.append(post)
+        context['posts_list'] = posts
         context['TRUNCWORDS_COUNT'] = get_setting('POSTS_LIST_TRUNCWORDS_COUNT')
         return context
 
